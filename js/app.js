@@ -219,10 +219,21 @@ function createGraph(pointData) {
       scales: {
         x: {
           type: "time",
+          time: {
+            tooltipFormat: "dd.LL.yyyy HH:mm:ss",
+            displayFormats: {
+              quarter: "MMM YYYY",
+              minute: "HH:mm",
+              second: "HH:mm:ss",
+              hour: "HH:mm",
+              day: "dd.LL.yyyy HH:mm",
+            },
+          },
           ticks: {
             source: "auto",
             // Disabled rotation for performance
-            maxRotation: 0,
+            maxRotation: 90,
+            minRotation: 0,
             autoSkip: true,
           },
         },
