@@ -29,7 +29,13 @@ function readCsv(file) {
     const mv = movingMax(csvArray);
     const data = getData(mv);
 
-    createGraph(data);
+    console.log(data);
+
+    const DateTime = luxon.DateTime;
+    const chartDate = DateTime.fromMillis(data[0]["x"]);
+    const subtitle = chartDate.toISO();
+
+    createGraph(data, file.name, subtitle);
   });
 
   if (file) {
@@ -89,7 +95,7 @@ function getRndInteger(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
-function createGraph(pointData) {
+function createGraph(pointData, title, subtitle) {
   const ctx = document.getElementById("graph").getContext("2d");
 
   let width, height, gradient;
@@ -118,10 +124,21 @@ function createGraph(pointData) {
   let textColor = "#eee";
   let gridColor = "#444";
 
+  const plugin = {
+    id: "custom_canvas_background_color",
+    beforeDraw: (chart) => {
+      const ctx = chart.canvas.getContext("2d");
+      ctx.save();
+      ctx.globalCompositeOperation = "destination-over";
+      ctx.fillStyle = "hsl(240, 2%, 10%)";
+      ctx.fillRect(0, 0, chart.width, chart.height);
+      ctx.restore();
+    },
+  };
+
   myChart = new Chart(ctx, {
     type: "line",
     color: "#eee",
-    backgroundColor: "#111",
     data: {
       datasets: [
         {
@@ -157,6 +174,7 @@ function createGraph(pointData) {
         axis: "x",
         intersect: false,
       },
+
       plugins: {
         legend: {
           labels: {
@@ -167,6 +185,24 @@ function createGraph(pointData) {
           enabled: false,
           algorithm: "lttb",
           samples: 150,
+        },
+        title: {
+          display: true,
+          text: title,
+          color: textColor,
+        },
+        subtitle: {
+          display: true,
+          text: subtitle,
+          color: textColor,
+          font: {
+            size: 12,
+            weight: "normal",
+            style: "italic",
+          },
+          padding: {
+            bottom: 10,
+          },
         },
       },
       scales: {
@@ -222,6 +258,7 @@ function createGraph(pointData) {
         },
       },
     },
+    plugins: [plugin],
   });
 }
 
