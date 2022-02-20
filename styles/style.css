@@ -7,10 +7,13 @@ body {
   color: #eee;
   box-sizing: border-box;
   padding: 1rem;
+  max-height: 100vh;
 }
 
 main {
   max-width: 100%;
+  aspect-ratio: 16/9;
+  max-height: calc(100vh - 5rem);
   background: hsl(240, 2%, 10%);
 
   padding: 1rem;
@@ -58,6 +61,7 @@ main {
   aspect-ratio: 16/9;
 
   margin-bottom: 1rem;
+  max-height: calc(100vh - 10rem);
 }
 
 .resetButton {
