@@ -9,6 +9,7 @@ const CSVToArray = (data, delimiter = ",", omitFirstRow = false) =>
     .split("\n")
     .map((v) => v.split(delimiter));
 
+// reads the CSV file and makes the data ready for chart.js
 function readCsv(file) {
   // Check if the file is a csv.
   if (file.type && !file.type.startsWith("application/")) {
@@ -24,6 +25,7 @@ function readCsv(file) {
 
     let csvArray = CSVToArray(csvTrim, ";", true);
 
+    // only average data if enough data rows exist
     if (csvArray.length > 5 * 120) {
       const mv = movingMax(csvArray);
       var maxData = getData(mv);
@@ -35,6 +37,7 @@ function readCsv(file) {
       var minData = false;
     }
 
+    // create title and subtitle for the graph
     const DateTime = luxon.DateTime;
     const chartDate = DateTime.fromMillis(maxData[0]["x"]);
     const subtitle = chartDate.toISO();
@@ -51,6 +54,7 @@ function readCsv(file) {
   }
 }
 
+// calculates a moving max average from the data
 function movingMax(data) {
   const average = Math.round(data.length / 75);
   const movingAverage = [];
@@ -72,6 +76,7 @@ function movingMax(data) {
   return movingAverage;
 }
 
+// calculates a moving min average from the data
 function movingMin(data) {
   const average = Math.round(data.length / 75);
   const movingAverage = [];
@@ -93,6 +98,7 @@ function movingMin(data) {
   return movingAverage;
 }
 
+// creates a chart.js compatible array from the csv data
 function getData(csvArray) {
   if (csvArray == false) {
     return false;
@@ -115,39 +121,17 @@ function getData(csvArray) {
   }
 }
 
-function getRndInteger(min, max) {
-  return Math.floor(Math.random() * (max - min)) + min;
-}
-
+// creates the visual graph
 function createGraph(maxData, minData, title, subtitle) {
   const ctx = document.getElementById("graph").getContext("2d");
 
   let width, height, gradient;
-  function getGradient(ctx, chartArea) {
-    const chartWidth = chartArea.right - chartArea.left;
-    const chartHeight = chartArea.bottom - chartArea.top;
-    if (!gradient || width !== chartWidth || height !== chartHeight) {
-      // Create the gradient because this is either the first render
-      // or the size of the chart has changed
-      width = chartWidth;
-      height = chartHeight;
-      gradient = ctx.createLinearGradient(
-        0,
-        chartArea.bottom,
-        0,
-        chartArea.top
-      );
-      gradient.addColorStop(0, "green");
-      gradient.addColorStop(0.5, "yellow");
-      gradient.addColorStop(1, "red");
-    }
 
-    return gradient;
-  }
-
+  // generaly used colors and other settings
   let textColor = "#eee";
   let gridColor = "#444";
 
+  // custom plugin to set graph background
   const plugin = {
     id: "custom_canvas_background_color",
     beforeDraw: (chart) => {
@@ -160,7 +144,9 @@ function createGraph(maxData, minData, title, subtitle) {
     },
   };
 
+  // check if max and min data is available, depending if enough data points exist
   if (minData !== false) {
+    // max and min exist
     var data = {
       datasets: [
         {
@@ -187,6 +173,7 @@ function createGraph(maxData, minData, title, subtitle) {
       ],
     };
   } else {
+    // only max exist and is not a moving average of max values
     var data = {
       datasets: [
         {
@@ -206,6 +193,7 @@ function createGraph(maxData, minData, title, subtitle) {
     };
   }
 
+  // create chart
   myChart = new Chart(ctx, {
     type: "line",
     color: "#eee",
@@ -302,6 +290,7 @@ function createGraph(maxData, minData, title, subtitle) {
 }
 
 function init() {
+  // register event handler for input
   dropArea.addEventListener(
     "change",
     (event) => {
@@ -350,6 +339,7 @@ function init() {
     }
   });
 
+  // create reset button event handler
   const resetButton = document.getElementById("reset");
   resetButton.addEventListener("click", (event) => {
     myChart.destroy();
@@ -361,6 +351,7 @@ function init() {
   });
 }
 
+// load when ready
 window.addEventListener("load", (event) => {
   dropArea = document.getElementById("drop-area");
   dropAreaText = document.querySelector(".drop-area-text");
