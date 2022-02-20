@@ -72,9 +72,7 @@ function getData(csvArray) {
 
   let data = [];
   for (const row of csvArray) {
-    const time = DateTime.fromFormat(String(row[0]), "dd.LL.yyyy HH:mm:ss", {
-      zone: "utc",
-    });
+    const time = DateTime.fromFormat(String(row[0]), "dd.LL.yyyy HH:mm:ss");
 
     const bpm = parseInt(row[2]);
 
@@ -123,6 +121,7 @@ function createGraph(pointData) {
   myChart = new Chart(ctx, {
     type: "line",
     color: "#eee",
+    backgroundColor: "#111",
     data: {
       datasets: [
         {
@@ -172,6 +171,11 @@ function createGraph(pointData) {
       },
       scales: {
         x: {
+          // adapters: {
+          //   date: {
+          //     zone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          //   },
+          // },
           type: "time",
           time: {
             tooltipFormat: "dd.LL.yyyy HH:mm:ss",
