@@ -10,7 +10,7 @@ body {
 
 main {
   max-width: 60rem;
-  background: rgb(34, 21, 34);
+  background: hsl(240, 2%, 10%);
 
   padding: 1rem;
   margin: 1rem auto;
