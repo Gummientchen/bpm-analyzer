@@ -2,8 +2,6 @@ var myChart;
 var dropArea;
 var dropAreaText;
 var graphArea;
-// var dropArea = document.getElementById("drop-area");
-// var graphArea = document.querySelector(".graph-area");
 
 const CSVToArray = (data, delimiter = ",", omitFirstRow = false) =>
   data
@@ -28,8 +26,6 @@ function readCsv(file) {
 
     const mv = movingMax(csvArray);
     const data = getData(mv);
-
-    console.log(data);
 
     const DateTime = luxon.DateTime;
     const chartDate = DateTime.fromMillis(data[0]["x"]);
@@ -143,16 +139,6 @@ function createGraph(pointData, title, subtitle) {
       datasets: [
         {
           borderColor: "hsl(191, 83%, 60%)",
-          // borderColor: function (context) {
-          //   const chart = context.chart;
-          //   const { ctx, chartArea } = chart;
-
-          //   if (!chartArea) {
-          //     // This case happens on initial chart load
-          //     return;
-          //   }
-          //   return getGradient(ctx, chartArea);
-          // },
           borderWidth: 2,
           data: pointData,
           label: "BPM (moving max)",
@@ -207,11 +193,6 @@ function createGraph(pointData, title, subtitle) {
       },
       scales: {
         x: {
-          // adapters: {
-          //   date: {
-          //     zone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          //   },
-          // },
           type: "time",
           time: {
             tooltipFormat: "dd.LL.yyyy HH:mm:ss",
@@ -266,12 +247,7 @@ function init() {
   dropArea.addEventListener(
     "change",
     (event) => {
-      // event.stopPropagation();
-      // event.preventDefault();
-      // console.log("file selected");
       const fileList = dropArea.files;
-
-      // console.log(fileList);
 
       for (const file of fileList) {
         readCsv(file);
