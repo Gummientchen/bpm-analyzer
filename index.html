@@ -17,11 +17,14 @@
   </head>
   <body>
     <main>
-      <div id="drop-area" class="drop-area">Drop file here...</div>
+      <label for="drop-area" class="drop-area-text"
+        >Click to open file or drag file here...</label
+      >
+      <input type="file" id="drop-area" accept="text/csv" />
       <div class="graph-area">
         <canvas width="160" height="90" id="graph" class="graph"></canvas>
         <div class="buttons">
-          <button id="reset">reset</button>
+          <button class="resetButton" id="reset">reset</button>
         </div>
       </div>
     </main>

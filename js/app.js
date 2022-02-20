@@ -1,4 +1,9 @@
 var myChart;
+var dropArea;
+var dropAreaText;
+var graphArea;
+// var dropArea = document.getElementById("drop-area");
+// var graphArea = document.querySelector(".graph-area");
 
 const CSVToArray = (data, delimiter = ",", omitFirstRow = false) =>
   data
@@ -12,11 +17,6 @@ function readCsv(file) {
     console.log("File is not a CSV.", file.type, file);
     return;
   }
-
-  const dropArea = document.getElementById("drop-area");
-  const graphArea = document.querySelector(".graph-area");
-
-  const content = document.querySelector(".graph");
 
   const reader = new FileReader();
   reader.addEventListener("load", (event) => {
@@ -34,6 +34,7 @@ function readCsv(file) {
 
   if (file) {
     dropArea.style.display = "none";
+    dropAreaText.style.display = "none";
     graphArea.style.display = "block";
 
     reader.readAsText(file);
@@ -44,77 +45,26 @@ function movingMax(data) {
   const average = Math.round(data.length / 75);
   const movingAverage = [];
 
-  for (i = 0; i < data.length - average; i += average) {
-    const datapoints = data.slice(i, average + i);
+  if (data.length > 75 * 5) {
+    for (i = 0; i < data.length - average; i += average) {
+      const datapoints = data.slice(i, average + i);
 
-    let ma = 0;
-    for (const p of datapoints) {
-      if (ma < parseInt(p[2])) {
-        ma = parseInt(p[2]);
+      let ma = 0;
+      for (const p of datapoints) {
+        if (ma < parseInt(p[2])) {
+          ma = parseInt(p[2]);
+        }
       }
+
+      let point = [datapoints[0][0], 0, ma];
+
+      movingAverage.push(point);
     }
-
-    let point = [datapoints[0][0], 0, ma];
-
-    movingAverage.push(point);
+  } else {
+    return data;
   }
 
   return movingAverage;
-}
-
-function getBpm(csvArray) {
-  let bpm = [];
-
-  for (const row of csvArray) {
-    bpm.push(row[2]);
-  }
-
-  return bpm;
-}
-
-function getAbsoluteMinBpm(csvArray) {
-  let lowest = 500;
-
-  for (const row of csvArray) {
-    if (row[2] < lowest) {
-      lowest = row[2];
-    }
-  }
-
-  return lowest;
-}
-
-function getAbsoluteMaxBpm(csvArray) {
-  let biggest = 0;
-
-  for (const row of csvArray) {
-    if (row[2] > biggest) {
-      biggest = row[2];
-    }
-  }
-
-  return biggest;
-}
-
-function getLabels(csvArray) {
-  const DateTime = luxon.DateTime;
-
-  let labels = [];
-  for (const row of csvArray) {
-    let time = DateTime.fromFormat(String(row[0]), "dd.LL.yyyy HH:mm:ss", {
-      zone: "utc",
-    });
-    labels.push(time);
-  }
-
-  return labels;
-}
-
-function getSamples(csvArray) {
-  const items = csvArray.length;
-  const maxSamples = 5;
-
-  return Math.round(items / maxSamples);
 }
 
 function getData(csvArray) {
@@ -144,19 +94,53 @@ function getRndInteger(min, max) {
 function createGraph(pointData) {
   const ctx = document.getElementById("graph").getContext("2d");
 
+  let width, height, gradient;
+  function getGradient(ctx, chartArea) {
+    const chartWidth = chartArea.right - chartArea.left;
+    const chartHeight = chartArea.bottom - chartArea.top;
+    if (!gradient || width !== chartWidth || height !== chartHeight) {
+      // Create the gradient because this is either the first render
+      // or the size of the chart has changed
+      width = chartWidth;
+      height = chartHeight;
+      gradient = ctx.createLinearGradient(
+        0,
+        chartArea.bottom,
+        0,
+        chartArea.top
+      );
+      gradient.addColorStop(0, "green");
+      gradient.addColorStop(0.5, "yellow");
+      gradient.addColorStop(1, "red");
+    }
+
+    return gradient;
+  }
+
   myChart = new Chart(ctx, {
     type: "line",
+    color: "#eee",
     data: {
       datasets: [
         {
-          borderColor: "hsl(75, 100%, 50%)",
-          borderWidth: 1,
+          // borderColor: "hsl(191, 83%, 60%)",
+          borderColor: function (context) {
+            const chart = context.chart;
+            const { ctx, chartArea } = chart;
+
+            if (!chartArea) {
+              // This case happens on initial chart load
+              return;
+            }
+            return getGradient(ctx, chartArea);
+          },
+          borderWidth: 2,
           data: pointData,
           label: "BPM (moving max)",
           radius: 2,
           tension: 0.5,
           trendlineLinear: {
-            style: "hsl(90, 100%, 50%)",
+            style: "hsl(191, 83%, 50%)",
             lineStyle: "dotted",
             width: 1,
           },
@@ -164,7 +148,7 @@ function createGraph(pointData) {
       ],
     },
     options: {
-      animation: false,
+      animation: true,
       parsing: false,
       interaction: {
         mode: "nearest",
@@ -192,38 +176,56 @@ function createGraph(pointData) {
             },
           },
           ticks: {
+            color: "#eee",
             source: "auto",
             maxRotation: 90,
             minRotation: 0,
             autoSkip: true,
           },
+          grid: {
+            color: "#444",
+          },
+        },
+        y: {
+          ticks: {
+            color: "#eee",
+            source: "auto",
+            // autoSkip: true,
+            maxTicksLimit: 20,
+          },
+          grid: {
+            color: "#444",
+          },
         },
       },
     },
   });
-
-  const resetButton = document.getElementById("reset");
-  resetButton.addEventListener("click", (event) => {
-    myChart.destroy();
-
-    const dropArea = document.getElementById("drop-area");
-    const graphArea = document.querySelector(".graph-area");
-
-    dropArea.style.display = "block";
-    graphArea.style.display = "none";
-  });
 }
 
 function init() {
-  const dropArea = document.getElementById("drop-area");
-  const graphArea = document.getElementById("graph");
-
   dropArea.addEventListener("dragover", (event) => {
     event.stopPropagation();
     event.preventDefault();
     // Style the drag-and-drop as a "copy file" operation.
     event.dataTransfer.dropEffect = "copy";
   });
+
+  dropArea.addEventListener(
+    "change",
+    (event) => {
+      // event.stopPropagation();
+      // event.preventDefault();
+      // console.log("file selected");
+      const fileList = dropArea.files;
+
+      // console.log(fileList);
+
+      for (const file of fileList) {
+        readCsv(file);
+      }
+    },
+    false
+  );
 
   dropArea.addEventListener("drop", (event) => {
     event.stopPropagation();
@@ -253,8 +255,22 @@ function init() {
       readCsv(file);
     }
   });
+
+  const resetButton = document.getElementById("reset");
+  resetButton.addEventListener("click", (event) => {
+    myChart.destroy();
+
+    dropArea.value = null;
+
+    dropAreaText.style.display = "flex";
+    graphArea.style.display = "none";
+  });
 }
 
 window.addEventListener("load", (event) => {
+  dropArea = document.getElementById("drop-area");
+  dropAreaText = document.querySelector(".drop-area-text");
+  graphArea = document.querySelector(".graph-area");
+
   init();
 });
