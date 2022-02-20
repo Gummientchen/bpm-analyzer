@@ -126,17 +126,17 @@ function createGraph(pointData) {
     data: {
       datasets: [
         {
-          // borderColor: "hsl(191, 83%, 60%)",
-          borderColor: function (context) {
-            const chart = context.chart;
-            const { ctx, chartArea } = chart;
+          borderColor: "hsl(191, 83%, 60%)",
+          // borderColor: function (context) {
+          //   const chart = context.chart;
+          //   const { ctx, chartArea } = chart;
 
-            if (!chartArea) {
-              // This case happens on initial chart load
-              return;
-            }
-            return getGradient(ctx, chartArea);
-          },
+          //   if (!chartArea) {
+          //     // This case happens on initial chart load
+          //     return;
+          //   }
+          //   return getGradient(ctx, chartArea);
+          // },
           borderWidth: 2,
           data: pointData,
           label: "BPM (moving max)",
@@ -202,7 +202,18 @@ function createGraph(pointData) {
             maxTicksLimit: 20,
           },
           grid: {
-            color: gridColor,
+            // color: gridColor,
+            color: function (context) {
+              if (context.tick.value >= 130) {
+                return "rgba(255, 0, 0, 0.5)";
+              } else if (context.tick.value >= 100) {
+                return "rgba(255, 255, 0, 0.5)";
+              } else {
+                return "rgba(0, 255, 0, 0.25)";
+              }
+
+              return "#000000";
+            },
           },
         },
       },
@@ -211,13 +222,6 @@ function createGraph(pointData) {
 }
 
 function init() {
-  dropArea.addEventListener("dragover", (event) => {
-    event.stopPropagation();
-    event.preventDefault();
-    // Style the drag-and-drop as a "copy file" operation.
-    event.dataTransfer.dropEffect = "copy";
-  });
-
   dropArea.addEventListener(
     "change",
     (event) => {
@@ -235,7 +239,14 @@ function init() {
     false
   );
 
-  dropArea.addEventListener("drop", (event) => {
+  dropAreaText.addEventListener("dragover", (event) => {
+    event.stopPropagation();
+    event.preventDefault();
+    // Style the drag-and-drop as a "copy file" operation.
+    event.dataTransfer.dropEffect = "copy";
+  });
+
+  dropAreaText.addEventListener("drop", (event) => {
     event.stopPropagation();
     event.preventDefault();
     const fileList = event.dataTransfer.files;
