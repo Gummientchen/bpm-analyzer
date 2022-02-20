@@ -46,7 +46,7 @@ function readCsv(file) {
 
     // createGraph(getBpm(csvArray), getLabels(csvArray), getSamples(csvArray));
 
-    const mv = movingAverage(csvArray);
+    const mv = movingMax(csvArray);
     const data = getData(mv);
     // const data = getData(csvArray);
 
@@ -63,7 +63,7 @@ function readCsv(file) {
   }
 }
 
-function movingAverage(data) {
+function movingMax(data) {
   const average = Math.round(data.length / 75);
   const movingAverage = [];
 
@@ -74,10 +74,14 @@ function movingAverage(data) {
 
     let ma = 0;
     for (const p of datapoints) {
-      ma += parseInt(p[2]);
+      // ma += parseInt(p[2]);
+
+      if (ma < parseInt(p[2])) {
+        ma = parseInt(p[2]);
+      }
     }
 
-    ma /= average;
+    // ma /= average;
 
     let point = [datapoints[0][0], 0, ma];
 
@@ -177,7 +181,7 @@ function createGraph(pointData) {
           borderColor: "hsl(75, 100%, 50%)",
           borderWidth: 1,
           data: pointData,
-          label: "BPM",
+          label: "BPM (moving max)",
           radius: 2,
           tension: 0.5,
           trendlineLinear: {
