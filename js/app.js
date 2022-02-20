@@ -1,5 +1,3 @@
-// console.log("BPMAnalyzer");
-
 var myChart;
 
 const CSVToArray = (data, delimiter = ",", omitFirstRow = false) =>
@@ -7,18 +5,6 @@ const CSVToArray = (data, delimiter = ",", omitFirstRow = false) =>
     .slice(omitFirstRow ? data.indexOf("\n") + 1 : 0)
     .split("\n")
     .map((v) => v.split(delimiter));
-
-function getMetadataForFileList(fileList) {
-  for (const file of fileList) {
-    // Not supported in Safari for iOS.
-    const name = file.name ? file.name : "NOT SUPPORTED";
-    // Not supported in Firefox for Android or Opera for Android.
-    const type = file.type ? file.type : "NOT SUPPORTED";
-    // Unknown cross-browser support.
-    const size = file.size ? file.size : "NOT SUPPORTED";
-    // console.log({ file, name, type, size });
-  }
-}
 
 function readCsv(file) {
   // Check if the file is a csv.
@@ -39,18 +25,9 @@ function readCsv(file) {
     const csvTrim = csv.trim();
 
     let csvArray = CSVToArray(csvTrim, ";", true);
-    // console.log(csvArray);
-    // content.innerHTML = csv;
-
-    // csvArray = csvArray.pop();
-
-    // createGraph(getBpm(csvArray), getLabels(csvArray), getSamples(csvArray));
 
     const mv = movingMax(csvArray);
     const data = getData(mv);
-    // const data = getData(csvArray);
-
-    // console.log(data);
 
     createGraph(data);
   });
@@ -70,18 +47,12 @@ function movingMax(data) {
   for (i = 0; i < data.length - average; i += average) {
     const datapoints = data.slice(i, average + i);
 
-    // console.log(datapoints);
-
     let ma = 0;
     for (const p of datapoints) {
-      // ma += parseInt(p[2]);
-
       if (ma < parseInt(p[2])) {
         ma = parseInt(p[2]);
       }
     }
-
-    // ma /= average;
 
     let point = [datapoints[0][0], 0, ma];
 
@@ -192,19 +163,6 @@ function createGraph(pointData) {
         },
       ],
     },
-    // data: {
-    //   labels: labels,
-    //   datasets: [
-    //     {
-    //       label: "BPM (over 120 measures)",
-    //       data: data,
-    //       borderWidth: 1,
-    //       fill: false,
-    //       borderColor: "hsl(75, 100%, 50%)",
-    //       tension: 0.1,
-    //     },
-    //   ],
-    // },
     options: {
       animation: false,
       parsing: false,
@@ -235,7 +193,6 @@ function createGraph(pointData) {
           },
           ticks: {
             source: "auto",
-            // Disabled rotation for performance
             maxRotation: 90,
             minRotation: 0,
             autoSkip: true,
@@ -258,8 +215,6 @@ function createGraph(pointData) {
 }
 
 function init() {
-  // console.log("ready");
-
   const dropArea = document.getElementById("drop-area");
   const graphArea = document.getElementById("graph");
 
@@ -274,9 +229,6 @@ function init() {
     event.stopPropagation();
     event.preventDefault();
     const fileList = event.dataTransfer.files;
-    // console.log(fileList);
-
-    getMetadataForFileList(fileList);
 
     for (const file of fileList) {
       readCsv(file);
@@ -296,9 +248,6 @@ function init() {
     event.stopPropagation();
     event.preventDefault();
     const fileList = event.dataTransfer.files;
-    // console.log(fileList);
-
-    getMetadataForFileList(fileList);
 
     for (const file of fileList) {
       readCsv(file);
