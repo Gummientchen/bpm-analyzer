@@ -24,14 +24,22 @@ function readCsv(file) {
 
     let csvArray = CSVToArray(csvTrim, ";", true);
 
-    const mv = movingMax(csvArray);
-    const data = getData(mv);
+    if (csvArray.length > 5 * 120) {
+      const mv = movingMax(csvArray);
+      var maxData = getData(mv);
+
+      const mm = movingMin(csvArray);
+      var minData = getData(mm);
+    } else {
+      var maxData = getData(csvArray);
+      var minData = false;
+    }
 
     const DateTime = luxon.DateTime;
-    const chartDate = DateTime.fromMillis(data[0]["x"]);
+    const chartDate = DateTime.fromMillis(maxData[0]["x"]);
     const subtitle = chartDate.toISO();
 
-    createGraph(data, file.name, subtitle);
+    createGraph(maxData, minData, file.name, subtitle);
   });
 
   if (file) {
@@ -47,51 +55,71 @@ function movingMax(data) {
   const average = Math.round(data.length / 75);
   const movingAverage = [];
 
-  if (data.length > 75 * 5) {
-    for (i = 0; i < data.length - average; i += average) {
-      const datapoints = data.slice(i, average + i);
+  for (i = 0; i < data.length - average; i += average) {
+    const datapoints = data.slice(i, average + i);
 
-      let ma = 0;
-      for (const p of datapoints) {
-        if (ma < parseInt(p[2])) {
-          ma = parseInt(p[2]);
-        }
+    let ma = 0;
+    for (const p of datapoints) {
+      if (ma < parseInt(p[2])) {
+        ma = parseInt(p[2]);
       }
-
-      let point = [datapoints[0][0], 0, ma];
-
-      movingAverage.push(point);
     }
-  } else {
-    return data;
-  }
 
+    let point = [datapoints[0][0], 0, ma];
+
+    movingAverage.push(point);
+  }
+  return movingAverage;
+}
+
+function movingMin(data) {
+  const average = Math.round(data.length / 75);
+  const movingAverage = [];
+
+  for (i = 0; i < data.length - average; i += average) {
+    const datapoints = data.slice(i, average + i);
+
+    let ma = 500;
+    for (const p of datapoints) {
+      if (ma > parseInt(p[2])) {
+        ma = parseInt(p[2]);
+      }
+    }
+
+    let point = [datapoints[0][0], 0, ma];
+
+    movingAverage.push(point);
+  }
   return movingAverage;
 }
 
 function getData(csvArray) {
-  const DateTime = luxon.DateTime;
+  if (csvArray == false) {
+    return false;
+  } else {
+    const DateTime = luxon.DateTime;
 
-  let data = [];
-  for (const row of csvArray) {
-    const time = DateTime.fromFormat(String(row[0]), "dd.LL.yyyy HH:mm:ss");
+    let data = [];
+    for (const row of csvArray) {
+      const time = DateTime.fromFormat(String(row[0]), "dd.LL.yyyy HH:mm:ss");
 
-    const bpm = parseInt(row[2]);
+      const bpm = parseInt(row[2]);
 
-    data.push({
-      x: time.toMillis(),
-      y: bpm,
-    });
+      data.push({
+        x: time.toMillis(),
+        y: bpm,
+      });
+    }
+
+    return data;
   }
-
-  return data;
 }
 
 function getRndInteger(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
-function createGraph(pointData, title, subtitle) {
+function createGraph(maxData, minData, title, subtitle) {
   const ctx = document.getElementById("graph").getContext("2d");
 
   let width, height, gradient;
@@ -132,15 +160,13 @@ function createGraph(pointData, title, subtitle) {
     },
   };
 
-  myChart = new Chart(ctx, {
-    type: "line",
-    color: "#eee",
-    data: {
+  if (minData !== false) {
+    var data = {
       datasets: [
         {
           borderColor: "hsl(191, 83%, 60%)",
           borderWidth: 2,
-          data: pointData,
+          data: maxData,
           label: "BPM (moving max)",
           radius: 2,
           tension: 0.5,
@@ -150,8 +176,40 @@ function createGraph(pointData, title, subtitle) {
             width: 1,
           },
         },
+        {
+          borderColor: "hsl(303, 83%, 60%, 0.5)",
+          borderWidth: 2,
+          data: minData,
+          label: "BPM (moving min)",
+          radius: 2,
+          tension: 0.5,
+        },
       ],
-    },
+    };
+  } else {
+    var data = {
+      datasets: [
+        {
+          borderColor: "hsl(191, 83%, 60%)",
+          borderWidth: 2,
+          data: maxData,
+          label: "BPM",
+          radius: 2,
+          tension: 0.5,
+          trendlineLinear: {
+            style: "hsl(191, 83%, 50%)",
+            lineStyle: "dotted",
+            width: 1,
+          },
+        },
+      ],
+    };
+  }
+
+  myChart = new Chart(ctx, {
+    type: "line",
+    color: "#eee",
+    data: data,
     options: {
       animation: true,
       parsing: false,
