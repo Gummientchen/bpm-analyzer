@@ -117,6 +117,9 @@ function createGraph(pointData) {
     return gradient;
   }
 
+  let textColor = "#eee";
+  let gridColor = "#444";
+
   myChart = new Chart(ctx, {
     type: "line",
     color: "#eee",
@@ -156,6 +159,11 @@ function createGraph(pointData) {
         intersect: false,
       },
       plugins: {
+        legend: {
+          labels: {
+            color: textColor,
+          },
+        },
         decimation: {
           enabled: false,
           algorithm: "lttb",
@@ -176,25 +184,25 @@ function createGraph(pointData) {
             },
           },
           ticks: {
-            color: "#eee",
+            color: textColor,
             source: "auto",
             maxRotation: 90,
             minRotation: 0,
             autoSkip: true,
           },
           grid: {
-            color: "#444",
+            color: gridColor,
           },
         },
         y: {
           ticks: {
-            color: "#eee",
+            color: textColor,
             source: "auto",
             // autoSkip: true,
             maxTicksLimit: 20,
           },
           grid: {
-            color: "#444",
+            color: gridColor,
           },
         },
       },
